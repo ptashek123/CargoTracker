@@ -40,10 +40,10 @@
             </div>
             
             <div class="d-flex gap-2">
-              <button class="btn btn-sm btn-outline-primary flex-fill">
+              <button class="btn btn-sm btn-outline-primary flex-fill" @click="editVehicle(vehicle)">
                 <i class="bi bi-pencil"></i> Редактировать
               </button>
-              <button class="btn btn-sm btn-outline-danger">
+              <button class="btn btn-sm btn-outline-danger" @click="deleteVehicle(vehicle)">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -66,8 +66,8 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Добавить транспорт</h5>
-            <button type="button" class="btn-close" @click="showModal = false"></button>
+            <h5 class="modal-title">{{ editingVehicle ? 'Редактировать транспорт' : 'Добавить транспорт' }}</h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
             <form>
@@ -115,8 +115,8 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showModal = false">Отмена</button>
-            <button type="button" class="btn btn-info" @click="addVehicle">
+            <button type="button" class="btn btn-secondary" @click="closeModal">Отмена</button>
+            <button type="button" class="btn btn-info" @click="editingVehicle ? updateVehicle() : addVehicle()">
               <i class="bi bi-save"></i> Сохранить
             </button>
           </div>
@@ -132,6 +132,7 @@ import api from '../api/client.js';
 
 const showModal = ref(false);
 const vehicles = ref([]);
+const editingVehicle = ref(null);
 
 const newVehicle = ref({
   number: '',
@@ -171,19 +172,60 @@ async function addVehicle() {
     const response = await api.post('/api/vehicles', newVehicle.value);
     vehicles.value.push(response.data);
     
-    newVehicle.value = {
-      number: '',
-      brand: '',
-      model: '',
-      type: 'truck',
-      capacity: 0,
-      year: new Date().getFullYear(),
-      status: 'available'
-    };
-    
+    resetForm();
     showModal.value = false;
   } catch (error) {
     alert('Ошибка сохранения: ' + error.message);
   }
+}
+
+async function editVehicle(vehicle) {
+  editingVehicle.value = vehicle;
+  newVehicle.value = { ...vehicle };
+  showModal.value = true;
+}
+
+async function updateVehicle() {
+  try {
+    const response = await api.put(`/api/vehicles/${editingVehicle.value.id}`, newVehicle.value);
+    const index = vehicles.value.findIndex(v => v.id === editingVehicle.value.id);
+    if (index !== -1) {
+      vehicles.value[index] = response.data;
+    }
+    
+    resetForm();
+    showModal.value = false;
+  } catch (error) {
+    alert('Ошибка обновления: ' + error.message);
+  }
+}
+
+async function deleteVehicle(vehicle) {
+  if (confirm(`Удалить транспорт ${vehicle.number}?`)) {
+    try {
+      await api.delete(`/api/vehicles/${vehicle.id}`);
+      vehicles.value = vehicles.value.filter(v => v.id !== vehicle.id);
+    } catch (error) {
+      alert('Ошибка удаления: ' + error.message);
+    }
+  }
+}
+
+function resetForm() {
+  newVehicle.value = {
+    number: '',
+    brand: '',
+    model: '',
+    type: 'truck',
+    capacity: 0,
+    year: new Date().getFullYear(),
+    status: 'available'
+  };
+  editingVehicle.value = null;
+}
+
+function closeModal() {
+  showModal.value = false;
+  resetForm();
 }
 </script>

@@ -340,24 +340,31 @@ app.get('/api/drivers', async (req, res) => {
   }
 });
 
-app.post('/api/drivers', async (req, res) => {
+app.put('/api/drivers/:id', async (req, res) => {
   try {
-    const driverId = 'DRV' + String((await dbAll('SELECT COUNT(*) as count FROM drivers'))[0].count + 1).padStart(3, '0');
     const driverData = {
-      id: driverId,
       ...req.body,
-      createdAt: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
     
     await dbRun(
-      'INSERT OR REPLACE INTO drivers (id, data) VALUES (?, ?)',
-      [driverId, JSON.stringify(driverData)]
+      'UPDATE drivers SET data = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(driverData), driverData.updated_at, req.params.id]
     );
     
-    res.json(driverData);
+    res.json({ id: req.params.id, ...driverData });
   } catch (error) {
-    console.error('Error creating driver:', error.message);
+    console.error('Error updating driver:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/drivers/:id', async (req, res) => {
+  try {
+    await dbRun('DELETE FROM drivers WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Driver deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting driver:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -376,24 +383,31 @@ app.get('/api/vehicles', async (req, res) => {
   }
 });
 
-app.post('/api/vehicles', async (req, res) => {
+app.put('/api/vehicles/:id', async (req, res) => {
   try {
-    const vehicleId = 'VH' + String((await dbAll('SELECT COUNT(*) as count FROM vehicles'))[0].count + 1).padStart(3, '0');
     const vehicleData = {
-      id: vehicleId,
       ...req.body,
-      createdAt: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
     
     await dbRun(
-      'INSERT OR REPLACE INTO vehicles (id, data) VALUES (?, ?)',
-      [vehicleId, JSON.stringify(vehicleData)]
+      'UPDATE vehicles SET data = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(vehicleData), vehicleData.updated_at, req.params.id]
     );
     
-    res.json(vehicleData);
+    res.json({ id: req.params.id, ...vehicleData });
   } catch (error) {
-    console.error('Error creating vehicle:', error.message);
+    console.error('Error updating vehicle:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/vehicles/:id', async (req, res) => {
+  try {
+    await dbRun('DELETE FROM vehicles WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Vehicle deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting vehicle:', error.message);
     res.status(500).json({ error: error.message });
   }
 });

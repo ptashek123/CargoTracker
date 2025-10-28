@@ -32,10 +32,10 @@
               </span>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-sm btn-outline-primary flex-fill">
+              <button class="btn btn-sm btn-outline-primary flex-fill" @click="editDriver(driver)">
                 <i class="bi bi-pencil"></i> Редактировать
               </button>
-              <button class="btn btn-sm btn-outline-danger">
+              <button class="btn btn-sm btn-outline-danger" @click="deleteDriver(driver)">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -58,8 +58,8 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Добавить водителя</h5>
-            <button type="button" class="btn-close" @click="showModal = false"></button>
+            <h5 class="modal-title">{{ editingDriver ? 'Редактировать водителя' : 'Добавить водителя' }}</h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
             <form>
@@ -85,8 +85,8 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showModal = false">Отмена</button>
-            <button type="button" class="btn btn-success" @click="addDriver">
+            <button type="button" class="btn btn-secondary" @click="closeModal">Отмена</button>
+            <button type="button" class="btn btn-success" @click="editingDriver ? updateDriver() : addDriver()">
               <i class="bi bi-save"></i> Сохранить
             </button>
           </div>
@@ -102,6 +102,7 @@ import api from '../api/client.js';
 
 const showModal = ref(false);
 const drivers = ref([]);
+const editingDriver = ref(null);
 
 const newDriver = ref({
   name: '',
@@ -128,16 +129,57 @@ async function addDriver() {
     const response = await api.post('/api/drivers', newDriver.value);
     drivers.value.push(response.data);
     
-    newDriver.value = {
-      name: '',
-      phone: '',
-      license: '',
-      status: 'active'
-    };
-    
+    resetForm();
     showModal.value = false;
   } catch (error) {
     alert('Ошибка сохранения: ' + error.message);
   }
+}
+
+async function editDriver(driver) {
+  editingDriver.value = driver;
+  newDriver.value = { ...driver };
+  showModal.value = true;
+}
+
+async function updateDriver() {
+  try {
+    const response = await api.put(`/api/drivers/${editingDriver.value.id}`, newDriver.value);
+    const index = drivers.value.findIndex(d => d.id === editingDriver.value.id);
+    if (index !== -1) {
+      drivers.value[index] = response.data;
+    }
+    
+    resetForm();
+    showModal.value = false;
+  } catch (error) {
+    alert('Ошибка обновления: ' + error.message);
+  }
+}
+
+async function deleteDriver(driver) {
+  if (confirm(`Удалить водителя ${driver.name}?`)) {
+    try {
+      await api.delete(`/api/drivers/${driver.id}`);
+      drivers.value = drivers.value.filter(d => d.id !== driver.id);
+    } catch (error) {
+      alert('Ошибка удаления: ' + error.message);
+    }
+  }
+}
+
+function resetForm() {
+  newDriver.value = {
+    name: '',
+    phone: '',
+    license: '',
+    status: 'active'
+  };
+  editingDriver.value = null;
+}
+
+function closeModal() {
+  showModal.value = false;
+  resetForm();
 }
 </script>
