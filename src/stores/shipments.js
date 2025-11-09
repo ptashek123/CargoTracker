@@ -19,17 +19,11 @@ export const useShipmentStore = defineStore('shipments', () => {
   async function fetchShipments() {
     loading.value = true;
     error.value = null;
-    
+
     try {
       const response = await api.get('/api/shipments');
-      
-      if (response.data.offline) {
-        isOffline.value = true;
-        shipments.value = response.data.data || [];
-      } else {
-        isOffline.value = false;
-        shipments.value = response.data;
-      }
+      isOffline.value = false;
+      shipments.value = response.data;
     } catch (err) {
       error.value = err.message;
       console.error('Failed to fetch shipments:', err);
@@ -41,22 +35,10 @@ export const useShipmentStore = defineStore('shipments', () => {
   async function createShipment(shipmentData) {
     loading.value = true;
     error.value = null;
-    
+
     try {
       const response = await api.post('/api/shipments', shipmentData);
-      
-      if (response.data.offline) {
-        isOffline.value = true;
-        // Добавляем в локальный список с временным ID
-        shipments.value.unshift({
-          ...shipmentData,
-          id: response.data.tempId,
-          status: 'queued'
-        });
-      } else {
-        shipments.value.unshift(response.data);
-      }
-      
+      shipments.value.unshift(response.data);
       return response.data;
     } catch (err) {
       error.value = err.message;
@@ -69,19 +51,15 @@ export const useShipmentStore = defineStore('shipments', () => {
   async function updateShipment(id, updates) {
     loading.value = true;
     error.value = null;
-    
+
     try {
       const response = await api.put(`/api/shipments/${id}`, updates);
-      
+
       const index = shipments.value.findIndex(s => s.id === id);
       if (index !== -1) {
-        if (response.data.offline) {
-          shipments.value[index] = { ...shipments.value[index], ...updates, status: 'queued' };
-        } else {
-          shipments.value[index] = response.data;
-        }
+        shipments.value[index] = response.data;
       }
-      
+
       return response.data;
     } catch (err) {
       error.value = err.message;

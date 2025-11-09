@@ -48,7 +48,7 @@
                     {{ getStatusText(shipment.status) }}
                   </span>
                 </td>
-                <td>{{ formatDate(shipment.createdAt) }}</td>
+                <td>{{ formatDate(shipment.created_at || shipment.createdAt) }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-1" @click="editShipment(shipment)">
                     <i class="bi bi-pencil"></i>
@@ -229,10 +229,7 @@ async function saveShipment() {
     if (editingShipment.value) {
       await shipmentStore.updateShipment(editingShipment.value.id, formData.value);
     } else {
-      await shipmentStore.createShipment({
-        ...formData.value,
-        createdAt: new Date().toISOString()
-      });
+      await shipmentStore.createShipment(formData.value);
     }
     closeModal();
   } catch (error) {

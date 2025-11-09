@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "description": "Система учёта грузоперевозок с интеграцией Yandex Cloud",
   "type": "module",
-  "main": "server/local-server.js",
+  "main": "server/supabase-server.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node server/local-server.js",
+    "server": "node server/supabase-server.js",
     "client": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "setup-db": "node database/setup.js"
+    "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.80.0",
+    "aws-sdk": "^2.1569.0",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -20,8 +21,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
-    "sqlite3": "^5.1.6",
-    "aws-sdk": "^2.1569.0"
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
