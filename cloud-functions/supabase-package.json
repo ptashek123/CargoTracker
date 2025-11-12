@@ -1,9 +1,0 @@
-{
-  "name": "cargotracker-yandex-cloud-function",
-  "version": "1.0.0",
-  "description": "Yandex Cloud Function for CargoTracker with Supabase",
-  "main": "supabase-function.js",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
-  }
-}
